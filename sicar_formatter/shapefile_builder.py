@@ -156,6 +156,15 @@ def build_sicar_package(
     """
     Função de conveniência para gerar pacote SICAR completo.
 
+    Nomes das camadas seguem padrão SICAR-SP:
+    - AREA_IMOVEL (perímetro)
+    - APP
+    - RESERVA_LEGAL
+    - VEGETACAO_NATIVA
+    - HIDROGRAFIA
+    - USO_CONSOLIDADO
+    - SERVIDAO_ADMINISTRATIVA
+
     Args:
         output_name: Nome do imóvel/saída
         perimetro_gdf: GeoDataFrame do perímetro (obrigatório)
@@ -173,13 +182,14 @@ def build_sicar_package(
     """
     builder = SICARShapefileBuilder(output_name, output_base=output_base)
 
-    builder.add_layer('perimetro', perimetro_gdf)
-    builder.add_layer('app', app_gdf)
-    builder.add_layer('reserva_legal', reserva_legal_gdf)
-    builder.add_layer('vegetacao_nativa', vegetacao_nativa_gdf)
-    builder.add_layer('area_consolidada', area_consolidada_gdf)
-    builder.add_layer('uso_restrito', uso_restrito_gdf)
-    builder.add_layer('hidrografia', hidrografia_gdf)
-    builder.add_layer('servidao', servidao_gdf)
+    # Nomes padronizados SICAR-SP
+    builder.add_layer('AREA_IMOVEL', perimetro_gdf)
+    builder.add_layer('APP', app_gdf)
+    builder.add_layer('RESERVA_LEGAL', reserva_legal_gdf)
+    builder.add_layer('VEGETACAO_NATIVA', vegetacao_nativa_gdf)
+    builder.add_layer('USO_CONSOLIDADO', area_consolidada_gdf)
+    builder.add_layer('USO_RESTRITO', uso_restrito_gdf)
+    builder.add_layer('HIDROGRAFIA', hidrografia_gdf)
+    builder.add_layer('SERVIDAO_ADMINISTRATIVA', servidao_gdf)
 
     return builder.build_zip()

@@ -61,10 +61,11 @@ MIN_PROPERTY_AREA_M2 = 2500  # ~0.25 hectare
 MIN_COORDINATE_DECIMALS = 8  # SICAR exige alta precisão
 
 # ============================================
-# ATRIBUTOS OBRIGATÓRIOS POR CAMADA SICAR
+# ATRIBUTOS OBRIGATÓRIOS POR CAMADA SICAR-SP
+# Nomes das camadas seguem padrão SICAR-SP
 # ============================================
 SICAR_ATTRIBUTES = {
-    'perimetro': {
+    'AREA_IMOVEL': {
         'cod_imovel': str,
         'nom_imovel': str,
         'mod_fiscal': float,
@@ -72,41 +73,41 @@ SICAR_ATTRIBUTES = {
         'cod_estado': str,
         'cod_municipio': str,
     },
-    'app': {
+    'APP': {
         'cod_app': str,
         'tip_app': str,
         'des_condic': str,
         'num_area': float,
     },
-    'reserva_legal': {
+    'RESERVA_LEGAL': {
         'cod_rl': str,
         'des_condic': str,
         'num_area': float,
         'ind_averbada': str,
         'num_matricula': str,
     },
-    'vegetacao_nativa': {
+    'VEGETACAO_NATIVA': {
         'cod_veg': str,
         'des_estagio': str,
         'num_area': float,
     },
-    'area_consolidada': {
+    'USO_CONSOLIDADO': {
         'cod_uso': str,
         'des_uso': str,
         'num_area': float,
     },
-    'uso_restrito': {
+    'USO_RESTRITO': {
         'cod_ur': str,
         'des_tipo': str,
         'num_area': float,
     },
-    'hidrografia': {
+    'HIDROGRAFIA': {
         'cod_hidro': str,
         'tip_hidro': str,
         'nom_hidro': str,
         'num_largura': float,
     },
-    'servidao': {
+    'SERVIDAO_ADMINISTRATIVA': {
         'cod_serv': str,
         'tip_serv': str,
         'num_area': float,
