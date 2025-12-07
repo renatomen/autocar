@@ -107,23 +107,28 @@ class APPCalculator:
         rivers_gdf: gpd.GeoDataFrame
     ) -> gpd.GeoDataFrame:
         """Calcula APP de margem de curso d'água."""
-        logger.info("Calculando APP de margem")
+        logger.info(f"Calculando APP de margem para {len(rivers_gdf)} cursos d'água")
 
         apps = []
         rivers_utm = rivers_gdf.to_crs(UTM_CRS_SP)
 
         for idx, row in rivers_utm.iterrows():
             river = row.geometry
-            largura = row.get('largura_m', 5)
+            largura = row.get('largura_m', 5) if hasattr(row, 'get') else row['largura_m'] if 'largura_m' in rivers_gdf.columns else 5
 
             # Determinar faixa de APP baseado na largura
             buffer_m = self._get_buffer_by_width(largura)
 
-            # Criar buffer
+            # Criar buffer ao redor do rio (APP)
             app_buffer = river.buffer(buffer_m)
 
-            # Intersectar com perímetro do imóvel
+            # Verificar se o buffer do rio (APP) intersecta o perímetro
+            # A APP conta mesmo que o rio esteja fora, desde que a faixa de proteção entre no imóvel
             app_dentro = app_buffer.intersection(self.perimeter_utm)
+
+            # Log para debug
+            dist_to_perimeter = river.distance(self.perimeter_utm)
+            logger.debug(f"Rio {idx}: largura={largura}m, buffer={buffer_m}m, dist_ao_perimetro={dist_to_perimeter:.1f}m, intersecção_vazia={app_dentro.is_empty}")
 
             if not app_dentro.is_empty:
                 app_wgs84 = self._utm_to_wgs84(app_dentro)
@@ -140,7 +145,15 @@ class APPCalculator:
                 })
 
         if apps:
+            logger.info(f"APPs de margem criadas: {len(apps)}")
             return gpd.GeoDataFrame(apps, crs=DEFAULT_CRS)
+
+        # Se não criou APPs, informar a distância mínima encontrada
+        if rivers_utm is not None and len(rivers_utm) > 0:
+            min_dist = min(r.geometry.distance(self.perimeter_utm) for _, r in rivers_utm.iterrows())
+            logger.info(f"Nenhuma APP de margem criada - curso d'água mais próximo está a {min_dist:.0f}m do perímetro")
+        else:
+            logger.info("Nenhuma APP de margem criada - nenhum curso d'água encontrado")
 
         return self._empty_app_gdf()
 
