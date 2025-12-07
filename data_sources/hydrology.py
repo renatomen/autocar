@@ -1,18 +1,24 @@
 """
 Coleta de dados hidrográficos de fontes públicas.
+Suporta dados locais (IBGE) e busca online (OpenStreetMap).
 """
 import geopandas as gpd
-from shapely.geometry import Polygon, Point, LineString, box
+from shapely.geometry import Polygon, Point, LineString, box, shape
 from shapely.ops import unary_union
+import requests
 import logging
 from pathlib import Path
 from typing import Optional
+import time
 
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from config import DEFAULT_CRS, UTM_CRS_SP, IBGE_DIR
 
 logger = logging.getLogger(__name__)
+
+# API Overpass para OpenStreetMap
+OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 
 
 class HydrologyCollector:
@@ -48,8 +54,11 @@ class HydrologyCollector:
         rivers = self._load_local_rivers(search_area)
 
         if rivers is None or rivers.empty:
-            logger.warning("Dados hidrográficos locais não encontrados")
-            # Retornar GeoDataFrame vazio com schema correto
+            logger.info("Dados locais não encontrados, buscando no OpenStreetMap...")
+            rivers = self._fetch_rivers_from_osm(search_area)
+
+        if rivers is None or rivers.empty:
+            logger.warning("Nenhum curso d'água encontrado na área")
             rivers = gpd.GeoDataFrame({
                 'geometry': [],
                 'nome': [],
@@ -78,6 +87,10 @@ class HydrologyCollector:
 
         # Tentar carregar dados locais
         lakes = self._load_local_lakes(polygon)
+
+        if lakes is None or lakes.empty:
+            logger.info("Lagos locais não encontrados, buscando no OpenStreetMap...")
+            lakes = self._fetch_lakes_from_osm(polygon)
 
         if lakes is None or lakes.empty:
             lakes = gpd.GeoDataFrame({
@@ -157,6 +170,224 @@ class HydrologyCollector:
                     logger.error(f"Erro ao carregar {filepath}: {e}")
 
         return None
+
+    def _fetch_rivers_from_osm(
+        self,
+        search_area: Polygon
+    ) -> Optional[gpd.GeoDataFrame]:
+        """
+        Busca rios no OpenStreetMap via API Overpass.
+
+        Args:
+            search_area: Polígono da área de busca
+
+        Returns:
+            GeoDataFrame com rios ou None
+        """
+        bounds = search_area.bounds  # (minx, miny, maxx, maxy)
+        bbox = f"{bounds[1]},{bounds[0]},{bounds[3]},{bounds[2]}"  # lat,lon,lat,lon
+
+        # Query Overpass para waterways
+        query = f"""
+        [out:json][timeout:60];
+        (
+          way["waterway"="river"]({bbox});
+          way["waterway"="stream"]({bbox});
+          way["waterway"="canal"]({bbox});
+          way["waterway"="ditch"]({bbox});
+          way["waterway"="drain"]({bbox});
+        );
+        out body;
+        >;
+        out skel qt;
+        """
+
+        try:
+            logger.info("Consultando OpenStreetMap (Overpass API)...")
+            response = requests.post(
+                OVERPASS_URL,
+                data={'data': query},
+                timeout=90
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            rivers = self._parse_osm_ways(data, search_area)
+
+            if rivers:
+                gdf = gpd.GeoDataFrame(rivers, crs=DEFAULT_CRS)
+                logger.info(f"Encontrados {len(gdf)} cursos d'água no OSM")
+                return gdf
+
+        except requests.exceptions.Timeout:
+            logger.warning("Timeout ao consultar OpenStreetMap")
+        except requests.exceptions.RequestException as e:
+            logger.warning(f"Erro ao consultar OpenStreetMap: {e}")
+        except Exception as e:
+            logger.error(f"Erro ao processar dados OSM: {e}")
+
+        return None
+
+    def _fetch_lakes_from_osm(
+        self,
+        polygon: Polygon
+    ) -> Optional[gpd.GeoDataFrame]:
+        """
+        Busca lagos no OpenStreetMap via API Overpass.
+
+        Args:
+            polygon: Polígono da área de busca
+
+        Returns:
+            GeoDataFrame com lagos ou None
+        """
+        bounds = polygon.bounds
+        bbox = f"{bounds[1]},{bounds[0]},{bounds[3]},{bounds[2]}"
+
+        # Query Overpass para water bodies
+        query = f"""
+        [out:json][timeout:60];
+        (
+          way["natural"="water"]({bbox});
+          relation["natural"="water"]({bbox});
+          way["water"="lake"]({bbox});
+          way["water"="pond"]({bbox});
+          way["water"="reservoir"]({bbox});
+        );
+        out body;
+        >;
+        out skel qt;
+        """
+
+        try:
+            logger.info("Consultando lagos no OpenStreetMap...")
+            response = requests.post(
+                OVERPASS_URL,
+                data={'data': query},
+                timeout=90
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            lakes = self._parse_osm_areas(data, polygon)
+
+            if lakes:
+                gdf = gpd.GeoDataFrame(lakes, crs=DEFAULT_CRS)
+                logger.info(f"Encontrados {len(gdf)} lagos no OSM")
+                return gdf
+
+        except requests.exceptions.Timeout:
+            logger.warning("Timeout ao consultar OpenStreetMap para lagos")
+        except requests.exceptions.RequestException as e:
+            logger.warning(f"Erro ao consultar OpenStreetMap: {e}")
+        except Exception as e:
+            logger.error(f"Erro ao processar dados OSM lagos: {e}")
+
+        return None
+
+    def _parse_osm_ways(self, data: dict, search_area: Polygon) -> list:
+        """
+        Converte dados OSM (ways) para lista de geometrias.
+
+        Args:
+            data: Resposta JSON da API Overpass
+            search_area: Área de busca para filtrar
+
+        Returns:
+            Lista de dicts com geometry e atributos
+        """
+        # Criar índice de nodes
+        nodes = {}
+        for element in data.get('elements', []):
+            if element['type'] == 'node':
+                nodes[element['id']] = (element['lon'], element['lat'])
+
+        # Processar ways
+        rivers = []
+        for element in data.get('elements', []):
+            if element['type'] == 'way':
+                coords = []
+                for node_id in element.get('nodes', []):
+                    if node_id in nodes:
+                        coords.append(nodes[node_id])
+
+                if len(coords) >= 2:
+                    line = LineString(coords)
+
+                    # Filtrar apenas linhas que intersectam a área
+                    if line.intersects(search_area):
+                        tags = element.get('tags', {})
+                        nome = tags.get('name', '')
+                        waterway_type = tags.get('waterway', '')
+
+                        # Estimar largura baseado no tipo
+                        if waterway_type == 'river':
+                            largura = 15.0
+                        elif waterway_type == 'stream':
+                            largura = 5.0
+                        elif waterway_type == 'canal':
+                            largura = 8.0
+                        else:
+                            largura = 3.0
+
+                        rivers.append({
+                            'geometry': line,
+                            'nome': nome,
+                            'tipo': waterway_type,
+                            'largura_m': largura,
+                            'source': 'OSM'
+                        })
+
+        return rivers
+
+    def _parse_osm_areas(self, data: dict, polygon: Polygon) -> list:
+        """
+        Converte dados OSM (areas) para lista de geometrias.
+
+        Args:
+            data: Resposta JSON da API Overpass
+            polygon: Área de busca para filtrar
+
+        Returns:
+            Lista de dicts com geometry e atributos
+        """
+        # Criar índice de nodes
+        nodes = {}
+        for element in data.get('elements', []):
+            if element['type'] == 'node':
+                nodes[element['id']] = (element['lon'], element['lat'])
+
+        # Processar ways como polígonos
+        lakes = []
+        for element in data.get('elements', []):
+            if element['type'] == 'way':
+                coords = []
+                for node_id in element.get('nodes', []):
+                    if node_id in nodes:
+                        coords.append(nodes[node_id])
+
+                # Precisa de pelo menos 4 pontos para formar um polígono
+                if len(coords) >= 4:
+                    # Fechar o polígono se necessário
+                    if coords[0] != coords[-1]:
+                        coords.append(coords[0])
+
+                    try:
+                        poly = Polygon(coords)
+                        if poly.is_valid and poly.intersects(polygon):
+                            tags = element.get('tags', {})
+                            nome = tags.get('name', '')
+
+                            lakes.append({
+                                'geometry': poly,
+                                'nome': nome,
+                                'tipo': tags.get('water', tags.get('natural', 'water')),
+                                'source': 'OSM'
+                            })
+                    except Exception:
+                        pass  # Ignorar polígonos inválidos
+
+        return lakes
 
     def _estimate_river_width(self, rivers: gpd.GeoDataFrame) -> list:
         """

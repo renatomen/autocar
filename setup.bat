@@ -4,10 +4,9 @@ echo AUTO CAR Generator - Setup
 echo ========================================
 echo.
 
-REM Verificar se Python está instalado
 python --version >nul 2>&1
 if errorlevel 1 (
-    echo ERRO: Python nao encontrado. Instale Python 3.10+ primeiro.
+    echo ERRO: Python nao encontrado.
     pause
     exit /b 1
 )
