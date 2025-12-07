@@ -72,21 +72,25 @@ def run_pipeline(kml_path: str, nome: str, bioma: str):
     # ===========================================
     logger.info("FASE 1: Leitura do KML de entrada")
 
-    # Tentar ler como KML completo (com hidrografia e RL)
+    # Tentar ler como KML completo (com hidrografia, RL e vegetação)
     try:
         kml_data = parse_kml_completo(kml_path)
         perimeter = kml_data['perimetro']
         corregos_local = kml_data['corregos']
         nascentes_local = kml_data['nascentes']
         reserva_legal_manual = kml_data['reserva_legal']
+        vegetacao_nativa_manual = kml_data['vegetacao_nativa']
 
         usar_hidro_local = not corregos_local.empty or not nascentes_local.empty
         usar_rl_manual = reserva_legal_manual is not None
+        usar_veg_manual = vegetacao_nativa_manual is not None
 
         if usar_hidro_local:
             logger.info("Hidrografia local detectada no KML")
         if usar_rl_manual:
             logger.info("Reserva Legal manual detectada no KML")
+        if usar_veg_manual:
+            logger.info("Vegetação Nativa/Remanescente detectada no KML")
 
     except Exception as e:
         logger.warning(f"Erro ao ler KML completo, usando parser simples: {e}")
@@ -94,8 +98,10 @@ def run_pipeline(kml_path: str, nome: str, bioma: str):
         corregos_local = gpd.GeoDataFrame({'geometry': []}, crs=DEFAULT_CRS)
         nascentes_local = gpd.GeoDataFrame({'geometry': []}, crs=DEFAULT_CRS)
         reserva_legal_manual = None
+        vegetacao_nativa_manual = None
         usar_hidro_local = False
         usar_rl_manual = False
+        usar_veg_manual = False
 
     # Validar geometria
     validator = GeometryValidator()
@@ -185,6 +191,25 @@ def run_pipeline(kml_path: str, nome: str, bioma: str):
             app_gdf=app_gdf if not app_gdf.empty else None
         )
 
+    # Vegetação Nativa/Remanescente
+    if usar_veg_manual:
+        logger.info("Processando Vegetação Nativa/Remanescente do KML")
+        veg_gdf_temp = gpd.GeoDataFrame({'geometry': [vegetacao_nativa_manual]}, crs=DEFAULT_CRS)
+        veg_utm = veg_gdf_temp.to_crs(UTM_CRS_SP)
+        veg_area_ha = veg_utm.geometry.iloc[0].area / 10000
+
+        vegetacao_nativa_gdf = gpd.GeoDataFrame([{
+            'geometry': vegetacao_nativa_manual,
+            'cod_veg': 'VEG_001',
+            'tip_veg': 'REMANESCENTE',
+            'des_estagio': 'A_CLASSIFICAR',
+            'num_area': round(veg_area_ha, 4)
+        }], crs=DEFAULT_CRS)
+
+        logger.info(f"Vegetação Nativa: {veg_area_ha:.2f} ha ({veg_area_ha/area_total_ha*100:.1f}%)")
+    else:
+        vegetacao_nativa_gdf = None
+
     # ===========================================
     # FASE 4: Geração dos arquivos de saída
     # ===========================================
@@ -197,7 +222,8 @@ def run_pipeline(kml_path: str, nome: str, bioma: str):
         perimetro_gdf=perimetro_gdf,
         app_gdf=app_gdf if not app_gdf.empty else None,
         reserva_legal_gdf=reserva_legal_gdf,
-        hidrografia_gdf=hidrografia_gdf if not hidrografia_gdf.empty else None
+        hidrografia_gdf=hidrografia_gdf if not hidrografia_gdf.empty else None,
+        vegetacao_nativa_gdf=vegetacao_nativa_gdf
     )
 
     # ===========================================

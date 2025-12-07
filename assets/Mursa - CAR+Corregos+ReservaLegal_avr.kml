@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<Document>
+	<name>Mursa - CAR.kml</name>
+	<open>1</open>
+	<atom:link rel="app" href="https://www.google.com/earth/about/versions/#earth-pro" title="Google Earth Pro 7.3.6.10441"></atom:link>
+	<Style id="inline">
+		<LineStyle>
+			<color>ff0000ff</color>
+			<width>2</width>
+		</LineStyle>
+		<PolyStyle>
+			<fill>0</fill>
+		</PolyStyle>
+	</Style>
+	<StyleMap id="inline0">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#inline1</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#inline</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="inline1">
+		<LineStyle>
+			<color>ff0000ff</color>
+			<width>2</width>
+		</LineStyle>
+		<PolyStyle>
+			<fill>0</fill>
+		</PolyStyle>
+	</Style>
+	<StyleMap id="m_ylw-pushpin">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#s_ylw-pushpin</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#s_ylw-pushpin_hl</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="m_ylw-pushpin0">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#s_ylw-pushpin0</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#s_ylw-pushpin_hl0</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="msn_ylw-pushpin">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#sn_ylw-pushpin</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#sh_ylw-pushpin</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="s_ylw-pushpin">
+		<IconStyle>
+			<scale>1.1</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>
+			</Icon>
+			<hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/>
+		</IconStyle>
+	</Style>
+	<Style id="s_ylw-pushpin0">
+		<IconStyle>
+			<scale>1.1</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>
+			</Icon>
+			<hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/>
+		</IconStyle>
+		<PolyStyle>
+			<color>91ffffff</color>
+		</PolyStyle>
+	</Style>
+	<Style id="s_ylw-pushpin_hl">
+		<IconStyle>
+			<scale>1.3</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>
+			</Icon>
+			<hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/>
+		</IconStyle>
+	</Style>
+	<Style id="s_ylw-pushpin_hl0">
+		<IconStyle>
+			<scale>1.3</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>
+			</Icon>
+			<hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/>
+		</IconStyle>
+		<PolyStyle>
+			<color>91ffffff</color>
+		</PolyStyle>
+	</Style>
+	<Style id="sh_ylw-pushpin">
+		<IconStyle>
+			<scale>1.3</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>
+			</Icon>
+			<hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/>
+		</IconStyle>
+		<BalloonStyle>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ffff0000</color>
+			<width>2.7</width>
+		</LineStyle>
+	</Style>
+	<Style id="sn_ylw-pushpin">
+		<IconStyle>
+			<scale>1.1</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>
+			</Icon>
+			<hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/>
+		</IconStyle>
+		<BalloonStyle>
+		</BalloonStyle>
+		<LineStyle>
+			<color>ffff0000</color>
+			<width>2.7</width>
+		</LineStyle>
+	</Style>
+	<Placemark>
+		<name>Mursa - Gleba G</name>
+		<styleUrl>#inline0</styleUrl>
+		<Polygon>
+			<tessellate>1</tessellate>
+			<outerBoundaryIs>
+				<LinearRing>
+					<coordinates>
+						-46.81777974431135,-23.25155091939737,0 -46.82006270485336,-23.25462688637181,0 -46.82046610646594,-23.25814109781291,0 -46.82071678838842,-23.25957268378212,0 -46.82015346637073,-23.26128043244507,0 -46.82000464176544,-23.26224352125865,0 -46.81976509076956,-23.26276332501173,0 -46.8173883453983,-23.26200731607331,0 -46.81225917887153,-23.2580418107982,0 -46.81407913356716,-23.25556354324866,0 -46.81532409195524,-23.25470875169692,0 -46.81748105537101,-23.25229437560715,0 -46.81759141096036,-23.2518111320644,0 -46.81777974431135,-23.25155091939737,0 
+					</coordinates>
+				</LinearRing>
+			</outerBoundaryIs>
+		</Polygon>
+	</Placemark>
+	<Placemark>
+		<name>vegetacao_remanescente</name>
+		<open>1</open>
+		<styleUrl>#inline0</styleUrl>
+		<Polygon>
+			<tessellate>1</tessellate>
+			<outerBoundaryIs>
+				<LinearRing>
+					<coordinates>
+						-46.81777974431135,-23.25155091939737,0 -46.82006270485336,-23.25462688637181,0 -46.82046610646594,-23.25814109781291,0 -46.82071678838842,-23.25957268378212,0 -46.82015346637073,-23.26128043244507,0 -46.82000464176544,-23.26224352125865,0 -46.81976509076956,-23.26276332501173,0 -46.8173883453983,-23.26200731607331,0 -46.81225917887153,-23.2580418107982,0 -46.81407913356716,-23.25556354324866,0 -46.81532409195524,-23.25470875169692,0 -46.81748105537101,-23.25229437560715,0 -46.81759141096036,-23.2518111320644,0 -46.81777974431135,-23.25155091939737,0 
+					</coordinates>
+				</LinearRing>
+			</outerBoundaryIs>
+		</Polygon>
+	</Placemark>
+	<Placemark>
+		<name>corrego_1</name>
+		<styleUrl>#msn_ylw-pushpin</styleUrl>
+		<LineString>
+			<tessellate>1</tessellate>
+			<coordinates>
+				-46.81372705325381,-23.25547014874331,0 -46.81394536882673,-23.25533926438122,0 -46.81418548121726,-23.255181451136,0 -46.814331466375,-23.2550233273864,0 -46.81450066015149,-23.25503721733316,0 -46.81463327247526,-23.25506680769715,0 -46.81480789050221,-23.255035941612,0 -46.81501742774067,-23.25493955828009,0 -46.81515126442043,-23.2548169486165,0 -46.81529903649378,-23.25473162809418,0 -46.81539448302123,-23.2546297559193,0 -46.81550502053477,-23.25452231052785,0 -46.81575347563864,-23.25427007727001,0 -46.81591794925557,-23.25402299279168,0 -46.81619935165403,-23.2537023863647,0 -46.81637892585306,-23.25354545862443,0 -46.81650627953337,-23.25338264263737,0 -46.81671478800323,-23.25316790054142,0 -46.81695075510162,-23.25286230313212,0 -46.81700056488192,-23.25268851302687,0 -46.81701645234144,-23.25249468623607,0 -46.81707181798433,-23.25226901283209,0 -46.81715293038862,-23.25196284878653,0 -46.8171937159308,-23.25170416131478,0 -46.81719475647684,-23.25148158835253,0 -46.81739587245476,-23.25118445902601,0 -46.81757502659217,-23.25094299646075,0 -46.81784416622432,-23.25076408839145,0 
+			</coordinates>
+		</LineString>
+	</Placemark>
+	<Placemark>
+		<name>Nascente_Corrego_1</name>
+		<LookAt>
+			<longitude>-46.81744714016457</longitude>
+			<latitude>-23.25299571469736</latitude>
+			<altitude>0</altitude>
+			<heading>154.7778242358978</heading>
+			<tilt>48.42011320324997</tilt>
+			<range>1102.99633684936</range>
+			<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+		</LookAt>
+		<styleUrl>#m_ylw-pushpin</styleUrl>
+		<Point>
+			<gx:drawOrder>1</gx:drawOrder>
+			<coordinates>-46.81377234070235,-23.25545182522646,0</coordinates>
+		</Point>
+	</Placemark>
+	<Placemark>
+		<name>Corrego_2</name>
+		<styleUrl>#msn_ylw-pushpin</styleUrl>
+		<LineString>
+			<tessellate>1</tessellate>
+			<coordinates>
+				-46.81577012306694,-23.25606235919917,0 -46.81557725855602,-23.25577934159019,0 -46.81545214143014,-23.25561191499967,0 -46.81538220999867,-23.25543116580856,0 -46.8153630072495,-23.25521415152958,0 -46.8153583142913,-23.25505317880775,0 -46.81532965411643,-23.25495216154054,0 -46.81533100440547,-23.25475311990434,0 
+			</coordinates>
+		</LineString>
+	</Placemark>
+	<Placemark>
+		<name>Nascente_Corrego_2</name>
+		<LookAt>
+			<longitude>-46.81643774618151</longitude>
+			<latitude>-23.25421268070107</latitude>
+			<altitude>0</altitude>
+			<heading>-160.9259662282603</heading>
+			<tilt>57.52229751792253</tilt>
+			<range>467.7593156937</range>
+			<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+		</LookAt>
+		<styleUrl>#m_ylw-pushpin</styleUrl>
+		<Point>
+			<gx:drawOrder>1</gx:drawOrder>
+			<coordinates>-46.81575659039703,-23.25603619812923,0</coordinates>
+		</Point>
+	</Placemark>
+	<Placemark>
+		<name>Reserva_Legal</name>
+		<styleUrl>#m_ylw-pushpin0</styleUrl>
+		<Polygon>
+			<tessellate>1</tessellate>
+			<outerBoundaryIs>
+				<LinearRing>
+					<coordinates>
+						-46.81775257838515,-23.25142008314093,0 -46.81831569883747,-23.25233274919297,0 -46.81694026512692,-23.25410005801784,0 -46.81647990443663,-23.25462596293925,0 -46.81586747654144,-23.25532539483022,0 -46.81642044856351,-23.25644001347041,0 -46.81597254797194,-23.25669393656928,0 -46.81537724030865,-23.25757680429017,0 -46.81481947098131,-23.25834753309884,0 -46.81416138316934,-23.25880430346933,0 -46.81377426930424,-23.25845239147341,0 -46.81279095535137,-23.2574938065692,0 -46.81343894281439,-23.2563220058163,0 -46.81377255145897,-23.25585243402266,0 -46.8138906083875,-23.25573231748465,0 -46.8139179775043,-23.2556253432186,0 -46.81402207984969,-23.25553184001762,0 -46.81419214150469,-23.255378441279,0 -46.81435304204723,-23.25528877099612,0 -46.81542488837434,-23.25459493704113,0 -46.81752167254837,-23.25224957218827,0 -46.81775257838515,-23.25142008314093,0 
+					</coordinates>
+				</LinearRing>
+			</outerBoundaryIs>
+		</Polygon>
+	</Placemark>
+</Document>
+</kml>

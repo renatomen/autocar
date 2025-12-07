@@ -142,6 +142,7 @@ def parse_kml_completo(kml_file_path: str) -> Dict:
     - Córregos (LineStrings)
     - Nascentes (Points)
     - Reserva Legal (polígono com nome 'Reserva_Legal')
+    - Vegetação Remanescente/Nativa (polígono com nome 'vegetacao*')
 
     Args:
         kml_file_path: Caminho para o arquivo KML
@@ -152,6 +153,7 @@ def parse_kml_completo(kml_file_path: str) -> Dict:
             - 'corregos': GeoDataFrame com LineStrings
             - 'nascentes': GeoDataFrame com Points
             - 'reserva_legal': Polygon ou None
+            - 'vegetacao_nativa': Polygon ou None
     """
     kml_path = Path(kml_file_path)
 
@@ -178,6 +180,7 @@ def parse_kml_completo(kml_file_path: str) -> Dict:
     # Classificar elementos
     perimetro = None
     reserva_legal = None
+    vegetacao_nativa = None
     corregos = []
     nascentes = []
 
@@ -195,8 +198,13 @@ def parse_kml_completo(kml_file_path: str) -> Dict:
                 if isinstance(geom, MultiPolygon):
                     geom = max(geom.geoms, key=lambda p: p.area)
                 reserva_legal = _validate_and_fix_geometry(geom)
+            elif 'vegetacao' in nome or 'remanescente' in nome or 'nativa' in nome:
+                logger.info(f"Vegetação Nativa/Remanescente identificada: {row.get('Name', 'sem nome')}")
+                if isinstance(geom, MultiPolygon):
+                    geom = max(geom.geoms, key=lambda p: p.area)
+                vegetacao_nativa = _validate_and_fix_geometry(geom)
             elif 'perimetro' in nome or 'gleba' in nome or 'imovel' in nome or perimetro is None:
-                # Primeiro polígono não-RL é o perímetro
+                # Primeiro polígono não-RL e não-vegetação é o perímetro
                 if isinstance(geom, MultiPolygon):
                     geom = max(geom.geoms, key=lambda p: p.area)
                 if perimetro is None or geom.area > perimetro.area:
@@ -237,13 +245,14 @@ def parse_kml_completo(kml_file_path: str) -> Dict:
         {'geometry': [], 'nome': [], 'tipo': [], 'source': []}, crs=DEFAULT_CRS
     )
 
-    logger.info(f"Elementos extraídos: perímetro=1, córregos={len(corregos)}, nascentes={len(nascentes)}, reserva_legal={'sim' if reserva_legal else 'não'}")
+    logger.info(f"Elementos extraídos: perímetro=1, córregos={len(corregos)}, nascentes={len(nascentes)}, reserva_legal={'sim' if reserva_legal else 'não'}, vegetacao_nativa={'sim' if vegetacao_nativa else 'não'}")
 
     return {
         'perimetro': perimetro,
         'corregos': corregos_gdf,
         'nascentes': nascentes_gdf,
-        'reserva_legal': reserva_legal
+        'reserva_legal': reserva_legal,
+        'vegetacao_nativa': vegetacao_nativa
     }
 
 
