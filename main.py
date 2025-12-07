@@ -16,7 +16,7 @@ from pathlib import Path
 import geopandas as gpd
 
 from config import OUTPUT_DIR, DEFAULT_CRS, UTM_CRS_SP
-from geospatial.kml_parser import parse_kml
+from geospatial.kml_parser import parse_kml, parse_kml_completo
 from geospatial.geometry_validator import GeometryValidator
 from geospatial.area_calculator import get_area_summary
 from data_sources.hydrology import HydrologyCollector, NascenteIdentifier
@@ -61,6 +61,7 @@ def main():
 def run_pipeline(kml_path: str, nome: str, bioma: str):
     """
     Executa o pipeline completo de geração de arquivos CAR.
+    Detecta automaticamente se o KML contém hidrografia local.
     """
     logger.info("=" * 60)
     logger.info("AUTO CAR Generator - Iniciando processamento")
@@ -71,7 +72,30 @@ def run_pipeline(kml_path: str, nome: str, bioma: str):
     # ===========================================
     logger.info("FASE 1: Leitura do KML de entrada")
 
-    gdf_input, perimeter = parse_kml(kml_path)
+    # Tentar ler como KML completo (com hidrografia e RL)
+    try:
+        kml_data = parse_kml_completo(kml_path)
+        perimeter = kml_data['perimetro']
+        corregos_local = kml_data['corregos']
+        nascentes_local = kml_data['nascentes']
+        reserva_legal_manual = kml_data['reserva_legal']
+
+        usar_hidro_local = not corregos_local.empty or not nascentes_local.empty
+        usar_rl_manual = reserva_legal_manual is not None
+
+        if usar_hidro_local:
+            logger.info("Hidrografia local detectada no KML")
+        if usar_rl_manual:
+            logger.info("Reserva Legal manual detectada no KML")
+
+    except Exception as e:
+        logger.warning(f"Erro ao ler KML completo, usando parser simples: {e}")
+        gdf_input, perimeter = parse_kml(kml_path)
+        corregos_local = gpd.GeoDataFrame({'geometry': []}, crs=DEFAULT_CRS)
+        nascentes_local = gpd.GeoDataFrame({'geometry': []}, crs=DEFAULT_CRS)
+        reserva_legal_manual = None
+        usar_hidro_local = False
+        usar_rl_manual = False
 
     # Validar geometria
     validator = GeometryValidator()
@@ -99,20 +123,27 @@ def run_pipeline(kml_path: str, nome: str, bioma: str):
     }], crs=DEFAULT_CRS)
 
     # ===========================================
-    # FASE 2: Coleta de dados externos
+    # FASE 2: Coleta de dados de hidrografia
     # ===========================================
-    logger.info("FASE 2: Coleta de dados externos")
+    logger.info("FASE 2: Coleta de dados de hidrografia")
 
-    # Hidrografia
-    logger.info("Coletando dados de hidrografia...")
-    hydro_collector = HydrologyCollector()
-    hidrografia_gdf = hydro_collector.get_rivers_in_area(perimeter, buffer_km=2)
-    lagos_gdf = hydro_collector.get_lakes_in_area(perimeter)
+    if usar_hidro_local:
+        # Usar hidrografia do KML
+        logger.info(f"Usando hidrografia local: {len(corregos_local)} córregos, {len(nascentes_local)} nascentes")
+        hidrografia_gdf = corregos_local
+        nascentes_gdf = nascentes_local
+        lagos_gdf = gpd.GeoDataFrame({'geometry': [], 'nome': [], 'area_ha': []}, crs=DEFAULT_CRS)
+    else:
+        # Buscar hidrografia externa (OSM)
+        logger.info("Buscando hidrografia externa...")
+        hydro_collector = HydrologyCollector()
+        hidrografia_gdf = hydro_collector.get_rivers_in_area(perimeter, buffer_km=2)
+        lagos_gdf = hydro_collector.get_lakes_in_area(perimeter)
 
-    # Nascentes
-    logger.info("Identificando nascentes...")
-    nascente_identifier = NascenteIdentifier()
-    nascentes_gdf = nascente_identifier.identify_from_rivers(perimeter, hidrografia_gdf)
+        # Identificar nascentes a partir dos rios
+        logger.info("Identificando nascentes...")
+        nascente_identifier = NascenteIdentifier()
+        nascentes_gdf = nascente_identifier.identify_from_rivers(perimeter, hidrografia_gdf)
 
     # ===========================================
     # FASE 3: Cálculo das camadas CAR
@@ -129,11 +160,30 @@ def run_pipeline(kml_path: str, nome: str, bioma: str):
     )
 
     # Reserva Legal
-    logger.info("Calculando Reserva Legal...")
-    rl_calc = ReservaLegalCalculator(perimeter, bioma)
-    reserva_legal_gdf = rl_calc.suggest_location(
-        app_gdf=app_gdf if not app_gdf.empty else None
-    )
+    if usar_rl_manual:
+        logger.info("Usando Reserva Legal definida manualmente no KML")
+        # Calcular área da RL manual
+        rl_gdf_temp = gpd.GeoDataFrame({'geometry': [reserva_legal_manual]}, crs=DEFAULT_CRS)
+        rl_utm = rl_gdf_temp.to_crs(UTM_CRS_SP)
+        rl_area_ha = rl_utm.geometry.iloc[0].area / 10000
+
+        reserva_legal_gdf = gpd.GeoDataFrame([{
+            'geometry': reserva_legal_manual,
+            'cod_rl': 'RL_001',
+            'ind_averbada': 'NAO',
+            'num_matricula': '',
+            'num_area': round(rl_area_ha, 4),
+            'pct_exigido': 20.0,
+            'area_exigida_ha': round(area_total_ha * 0.20, 4)
+        }], crs=DEFAULT_CRS)
+
+        logger.info(f"Reserva Legal manual: {rl_area_ha:.2f} ha ({rl_area_ha/area_total_ha*100:.1f}%)")
+    else:
+        logger.info("Calculando Reserva Legal sugerida...")
+        rl_calc = ReservaLegalCalculator(perimeter, bioma)
+        reserva_legal_gdf = rl_calc.suggest_location(
+            app_gdf=app_gdf if not app_gdf.empty else None
+        )
 
     # ===========================================
     # FASE 4: Geração dos arquivos de saída
